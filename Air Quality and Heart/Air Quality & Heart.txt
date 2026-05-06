@@ -1,0 +1,31 @@
+import pandas as pd
+import numpy as np
+
+air = pd.read_csv("A:/DSBDA/Air Quality.csv")
+heart = pd.read_csv("A:/DSBDA/heart.csv")
+
+air.head()
+heart.head()
+
+air.tail()
+heart.tail()
+
+air.isnull()
+air.isna()
+air.isna().any()
+air.isna().sum()
+
+heart.isnull()
+heart.isna().sum()
+
+air.shape
+heart.shape
+
+air.describe()
+heart.describe()
+
+air.dropna()
+heart.dropna()
+
+air.fillna(0)
+heart.fillna(0)

@@ -1,0 +1,58 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+
+air = pd.read_csv("C:\\Users\\Shreyash Gadekar\\Desktop\\DSBDA Final Code\\Air Quality and Heart\\Air Quality.csv")
+heart = pd.read_csv("C:\\Users\\Shreyash Gadekar\\Desktop\\DSBDA Final Code\\Air Quality and Heart\\heart.csv")
+
+air.columns = air.columns.str.strip().str.lower()
+heart.columns = heart.columns.str.strip().str.lower()
+
+air.drop_duplicates(inplace=True)
+heart.drop_duplicates(inplace=True)
+
+air.dropna(axis=1, how='all', inplace=True)
+heart.dropna(axis=1, how='all', inplace=True)
+
+air.fillna(air.mean(numeric_only=True), inplace=True)
+heart.fillna(heart.mean(numeric_only=True), inplace=True)
+
+air["id"] = range(len(air))
+heart["id"] = np.random.choice(air["id"], len(heart))
+
+data = pd.merge(air, heart, on="id", how="left")
+
+data = data.dropna(axis=1, how='all')
+data = data.dropna()
+
+scaler = MinMaxScaler()
+num_cols = data.select_dtypes(include=np.number).columns
+data[num_cols] = scaler.fit_transform(data[num_cols])
+
+data = pd.get_dummies(data, drop_first=True)
+
+if {"co(gt)", "no2(gt)", "nox(gt)"}.issubset(data.columns):
+    data["pollution_index"] = (
+        data["co(gt)"] + data["no2(gt)"] + data["nox(gt)"]
+    ) / 3
+
+if "age" in data.columns:
+    data = data[data["age"] > 0]
+
+if "cholesterol" in data.columns:
+    data["cholesterol"] = data["cholesterol"].clip(0.25, 0.75)
+
+num_cols = data.select_dtypes(include=np.number).columns
+Q1 = data[num_cols].quantile(0.25)
+Q3 = data[num_cols].quantile(0.75)
+IQR = Q3 - Q1
+
+data = data[
+    ~(
+        (data[num_cols] < (Q1 - 1.5 * IQR)) |
+        (data[num_cols] > (Q3 + 1.5 * IQR))
+    ).any(axis=1)
+]
+
+print("Final Dataset Shape:", data.shape)
+print(data.head())
