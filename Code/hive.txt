@@ -1,0 +1,74 @@
+start-dfs.sh
+start-yarn.sh
+
+hive
+
+CREATE DATABASE flights_info;
+
+USE flights_info;
+
+CREATE TABLE flights (
+flight_id INT,
+flight_date STRING,
+carrier STRING,
+origin STRING,
+destination STRING,
+dep_delay INT,
+arr_delay INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+INSERT INTO flights VALUES
+(1001,'2024-01-01','AA','JFK','LAX',10,5),
+(1002,'2024-01-02','AI','DEL','MUM',20,15),
+(1003,'2024-01-03','IND','PUN','BLR',5,2);
+
+SELECT * FROM flights;
+
+ALTER TABLE flights
+ADD COLUMNS (flight_duration INT);
+
+CREATE EXTERNAL TABLE external_airports (
+airport_code STRING,
+airport_name STRING,
+city STRING,
+state STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+INSERT INTO external_airports VALUES
+('JFK','John F Kennedy Airport','New York','NY'),
+('DEL','Indira Gandhi Airport','Delhi','Delhi'),
+('PUN','Pune Airport','Pune','MH');
+
+SELECT * FROM external_airports;
+
+LOAD DATA LOCAL INPATH '/home/hadoop/external_airport.txt'
+INTO TABLE external_airports;
+
+SELECT
+f.flight_id,
+f.carrier,
+f.origin,
+a.airport_name
+FROM flights f
+JOIN external_airports a
+ON f.origin=a.airport_code;
+
+SELECT AVG(dep_delay) AS avg_departure_delay
+FROM flights;
+
+CREATE INDEX idx_airport_code
+ON TABLE external_airports (airport_code)
+AS 'COMPACT'
+WITH DEFERRED REBUILD;
+
+ALTER INDEX idx_airport_code
+ON external_airports
+REBUILD;
+
+SHOW TABLES;
