@@ -1,0 +1,54 @@
+import requests
+from bs4 import BeautifulSoup
+from pymongo import MongoClient
+
+url = "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html"
+
+response = requests.get(url)
+soup = BeautifulSoup(response.content, 'html.parser')
+
+title = soup.find('h1').text.lower()
+price = soup.find('p', class_='price_color').text
+availability = soup.find('p', class_='instock availability').text.strip()
+rating = soup.find('p', class_='star-rating')['class'][1]
+
+print(title, price, availability, rating)
+
+rating_map = {
+    "One" : 1,
+    "Two" : 2,
+    "Three" : 3,
+    "Four" : 4,
+    "Five" : 5
+}
+
+rating = rating_map.get(rating, 0)
+
+data = {
+    "title" : title,
+    "price" : price,
+    "availability" : availability,
+    "rating" : rating
+}
+
+client = MongoClient("mongodb://localhost:27017/")
+
+db = client["bookstore"]
+
+collection = db["books"]
+
+result = collection.insert_one(data)
+
+print("Inserted document id: ", result.inserted_id)
+
+input_title = input("Enter title of book: ").lower()
+result = collection.find_one({"title": input_title})
+
+if result:
+    print("\nBook found")
+    print("Title: ",result.get("title"))
+    print("Price: ",result.get("price"))
+    print("Availability: ",result.get("availability"))
+    print("Rating: ",result.get("rating"))
+else:
+    print("\nBook not found")
