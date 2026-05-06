@@ -1,0 +1,60 @@
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv("C:\\Users\\Shreyash Gadekar\\Desktop\\DSBDA Final Code\\Facebook\\Dataset_Facebook_extra.csv", sep=";")
+df.head()
+
+# a. create data subset
+#Column Subset
+subset = df[["Type", "like", "share"]]
+subset.head()
+
+#Using loc() (by label)
+subset1 = df.loc[0:10, ['like', 'share']]
+subset1
+
+#Using iloc() (by index)
+subset2 = df.iloc[0:10, 0:3]
+subset2
+
+df1 = df.iloc[:, :3]
+df2 = df.iloc[:, 3:]
+
+merged = pd.merge(df1, df2, left_index=True, right_index=True)
+merged
+
+# b. Merge Data
+extra_data = pd.DataFrame({
+ "Type": ["Photo", "Status", "Video", "Link"],
+ "Content Score": [80, 65, 90, 70]
+})
+extra_data
+
+merged_data = pd.merge(df, extra_data, on="Type", how="left")
+print("Merged Data:")
+print(merged_data.head())
+print("-" * 50)
+
+# c. sort data
+sorted_data = df.sort_values( by = "like", ascending=False)
+sorted_data
+
+# d. Transpose Data
+transpose_data = df.T
+transpose_data
+
+# e. shape and reshape data
+df.shape
+
+reach_array = np.array(df["Lifetime Post Total Reach"].head(6))
+reshaped_array = reach_array.reshape(2, 3)
+
+print("Reshaped Array (2x3):")
+print(reshaped_array)
+print("-" * 50)
+
+df_pivot = df.pivot_table(values='like', index='Type', columns='Category')
+df_pivot
+
+df_melt = pd.melt(df, id_vars=['Type'], value_vars=['like','share'])
+df_melt
